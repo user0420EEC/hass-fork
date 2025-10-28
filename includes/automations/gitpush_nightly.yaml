@@ -1,0 +1,23 @@
+# ✅ Исправление: при !include_dir_merge_list каждый файл — это СПИСОК автоматизаций.
+#    Поэтому нужен ведущий дефис.
+
+# file: includes/automations/gitpush_nightly.yaml
+- id: github_nightly_ha_gitpush
+  alias: "GitHub: nightly ha_gitpush.sh"
+  description: "Ежедневный запуск скрипта ha_gitpush.sh из /config для резервного копирования"
+  trigger:
+    - platform: time
+      at: "03:00:00"
+  condition: []
+  action:
+    - service: shell_command.ha_gitpush
+  mode: single
+
+# Проверка:
+# - В configuration.yaml подключение выглядит так:
+#     automation: !include_dir_merge_list includes/automations
+# - shell_command уже добавлен:
+#     shell_command:
+#       ha_gitpush: "/bin/bash /config/ha_gitpush.sh"
+# - Скрипт исполняемый: chmod +x /config/ha_gitpush.sh
+# - После сохранения: Настройки → Сервер → Перезагрузить автоматизации.

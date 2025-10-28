@@ -1,0 +1,188 @@
+# Файл: curtains_automation.yaml
+# Обновлено: ОТКРЫТИЕ кухни и зала — КАЖДЫЙ день (без проверки дня недели).
+# Проверки дверей: зал → binary_sensor.door_sensor_balkon1_contact (on=дверь открыта → НИЧЕГО не делаем)
+# Логика концевиков: on = штора ОТКРЫТА, off = штора ЗАКРЫТА.
+
+# ====== КУХНЯ ======
+- id: curtains_kuhnya_open_07_daily
+  alias: Кухня — шторы открыть ежедневно в 07:00 (с концевиком)
+  mode: single
+  trigger:
+    - platform: time
+      at: "07:00:00"
+  action:
+    - choose:
+        - conditions:
+            - condition: state
+              entity_id: binary_sensor.curtains_sensor_kuhnya_contact
+              state: 'off'       # сейчас закрыта → можно открывать
+          sequence:
+            - service: light.turn_on
+              target: { entity_id: light.kuhnya_shtor_open }
+            - delay: "00:00:00.3"
+            - service: light.turn_off
+              target: { entity_id: light.kuhnya_shtor_open }
+
+- id: curtains_kuhnya_close_at_night
+  alias: Кухня — шторы закрыть при темноте (с концевиком)
+  mode: single
+  trigger:
+    - platform: state
+      entity_id: binary_sensor.day_night
+      to: "off"
+  action:
+    - choose:
+        - conditions:
+            - condition: state
+              entity_id: binary_sensor.curtains_sensor_kuhnya_contact
+              state: 'on'        # сейчас открыта → можно закрывать
+          sequence:
+            - service: light.turn_on
+              target: { entity_id: light.kuhnya_shtor_close }
+            - delay: "00:00:00.3"
+            - service: light.turn_off
+              target: { entity_id: light.kuhnya_shtor_close }
+
+
+# ====== ЗАЛ ======
+- id: curtains_zal_open_07_daily
+  alias: Зал — шторы открыть ежедневно в 07:00 (с концевиком + проверка двери)
+  mode: single
+  trigger:
+    - platform: time
+      at: "07:00:00"
+  condition:
+    - condition: state
+      entity_id: binary_sensor.door_sensor_balkon1_contact
+      state: 'off'              # дверь закрыта → работаем
+  action:
+    - choose:
+        - conditions:
+            - condition: state
+              entity_id: binary_sensor.curtains_sensor_zal_contact
+              state: 'off'       # штора закрыта → можно открывать
+          sequence:
+            - service: light.turn_on
+              target: { entity_id: light.zal_shtor_open }
+            - delay: "00:00:00.3"
+            - service: light.turn_off
+              target: { entity_id: light.zal_shtor_open }
+
+- id: curtains_zal_close_at_night
+  alias: Зал — шторы закрыть при темноте (с концевиком + проверка двери)
+  mode: single
+  trigger:
+    - platform: state
+      entity_id: binary_sensor.day_night
+      to: "off"
+  condition:
+    - condition: state
+      entity_id: binary_sensor.door_sensor_balkon1_contact
+      state: 'off'              # дверь закрыта → работаем
+  action:
+    - choose:
+        - conditions:
+            - condition: state
+              entity_id: binary_sensor.curtains_sensor_zal_contact
+              state: 'on'        # штора открыта → можно закрывать
+          sequence:
+            - service: light.turn_on
+              target: { entity_id: light.zal_shtor_close }
+            - delay: "00:00:00.3"
+            - service: light.turn_off
+              target: { entity_id: light.zal_shtor_close }
+
+
+# ====== СПАЛЬНЯ ======
+- id: curtains_spalnya_open_07_weekdays
+  alias: Спальня — шторы открыть по будням в 07:00 (с концевиком + проверка двери)
+  mode: single
+  trigger:
+    - platform: time
+      at: "07:00:00"
+  condition:
+    - condition: time
+      weekday: [mon, tue, wed, thu, fri]
+    - condition: state
+      entity_id: binary_sensor.door_sensor_balkon2_contact
+      state: 'off'              # дверь закрыта → работаем
+  action:
+    - choose:
+        - conditions:
+            - condition: state
+              entity_id: binary_sensor.curtains_sensor_spalnya_contact
+              state: 'off'       # штора закрыта → можно открывать
+          sequence:
+            - service: light.turn_on
+              target: { entity_id: light.spal_shtor_open }
+            - delay: "00:00:00.3"
+            - service: light.turn_off
+              target: { entity_id: light.spal_shtor_open }
+
+- id: curtains_spalnya_close_at_night
+  alias: Спальня — шторы закрыть при темноте (с концевиком + проверка двери)
+  mode: single
+  trigger:
+    - platform: state
+      entity_id: binary_sensor.day_night
+      to: "off"
+  condition:
+    - condition: state
+      entity_id: binary_sensor.door_sensor_balkon2_contact
+      state: 'off'              # дверь закрыта → работаем
+  action:
+    - choose:
+        - conditions:
+            - condition: state
+              entity_id: binary_sensor.curtains_sensor_spalnya_contact
+              state: 'on'        # штора открыта → можно закрывать
+          sequence:
+            - service: light.turn_on
+              target: { entity_id: light.spal_shtor_close }
+            - delay: "00:00:00.3"
+            - service: light.turn_off
+              target: { entity_id: light.spal_shtor_close }
+
+
+# ====== ДЕТСКАЯ ======
+- id: curtains_detskaya_open_07_weekdays
+  alias: Детская — шторы открыть по будням в 07:00 (с концевиком)
+  mode: single
+  trigger:
+    - platform: time
+      at: "08:00:00"
+  condition:
+    - condition: time
+      weekday: [mon, tue, wed, thu, fri]
+  action:
+    - choose:
+        - conditions:
+            - condition: state
+              entity_id: binary_sensor.curtains_sensor_detskaya_contact
+              state: 'off'       # сейчас закрыта → можно открывать
+          sequence:
+            - service: light.turn_on
+              target: { entity_id: light.detskaya_shtor_open }
+            - delay: "00:00:00.3"
+            - service: light.turn_off
+              target: { entity_id: light.detskaya_shtor_open }
+
+- id: curtains_detskaya_close_at_night
+  alias: Детская — шторы закрыть при темноте (с концевиком)
+  mode: single
+  trigger:
+    - platform: state
+      entity_id: binary_sensor.day_night
+      to: "off"
+  action:
+    - choose:
+        - conditions:
+            - condition: state
+              entity_id: binary_sensor.curtains_sensor_detskaya_contact
+              state: 'on'        # сейчас открыта → можно закрывать
+          sequence:
+            - service: light.turn_on
+              target: { entity_id: light.detskaya_shtor_close }
+            - delay: "00:00:00.3"
+            - service: light.turn_off
+              target: { entity_id: light.detskaya_shtor_close }

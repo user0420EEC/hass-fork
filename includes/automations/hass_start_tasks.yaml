@@ -1,57 +1,50 @@
-- id: '1761053596139'
-  alias: автостарт Power Supply 24В Диодная подсветка
-  description: Включение блока питания с диодным освещением
-  triggers:
-  - trigger: homeassistant
-    event: start
-  conditions: []
-  actions:
-  - delay: 00:00:10
-  - action: switch.turn_on
-    target:
-      entity_id: switch.system_diod
-  mode: single
-- id: '1761053833054'
-  alias: автостарт Теплый Пол
-  description: Включение тёплого пола при включении HASS
-  triggers:
-  - trigger: homeassistant
-    event: start
-  conditions: []
-  actions:
-  - delay: 00:00:12
-  - action: switch.turn_on
-    target:
-      entity_id: switch.system_teply_pol
-  mode: single
+# Автоуведомление о старте HASS в Telegram + локальное уведомление
+# Формат:
+# ✅ Home Assistant запущен
+# 🕒 Время запуска: 13:56:02, 26.10.2025
+# 🌐 IP-адрес: 192.168.1.25
+#
+# 🔥 Тёплый пол: ВКЛЮЧЕН
+# 💡 Диодное освещение: ВКЛЮЧЕНО
+
 - id: '1761122347275'
-  alias: Уведомление о старте HASS в Telegram
-  description: Отправка сообщения при запуске Home Assistant
+  alias: Уведомление о старте HASS (IP + состояние систем)
+  description: Telegram + уведомление при старте, с IP и статусами тёплого пола и диодной подсветки
   triggers:
-  - trigger: homeassistant
-    event: start
+    - trigger: homeassistant
+      event: start
   conditions: []
   actions:
-  - delay: 00:00:08
-  - action: telegram_bot.send_message
-    data:
-      config_entry_id: 01K85FEY9X86ZAEWBEGMWJEJ7V
-      target:
-      - '374673383'
-      message: "✅ Home Assistant запущен \U0001F552 Время запуска: {{ now().strftime('%Y-%m-%d
-        %H:%M:%S') }}"
-  - action: persistent_notification.create
-    data:
-      title: ✅ HASS запущен
-      message: "\U0001F552 Время запуска: {{ now().strftime('%H:%M:%S %Y-%m-%d') }}"
-  mode: single
-- id: auto_ha_gitpush_daily_0300
-  alias: "Backup - git push в 03:00"
-  description: "Ежедневный запуск скрипта /config/ha_gitpush.sh"
-  trigger:
-    - platform: time
-      at: "03:00:00"
-  condition: []
-  action:
-    - service: shell_command.ha_gitpush
+    - delay: "00:00:20"  # ждём сеть и инициализацию сущностей
+    - variables:
+        hass_ip: "{{ states('sensor.local_ip') if states('sensor.local_ip') not in ['unknown','unavailable',''] else 'IP не определён' }}"
+        teply_pol_line: >
+          {% if is_state('switch.system_teply_pol', 'on') %}🔥 Тёплый пол: ВКЛЮЧЕН
+          {% elif is_state('switch.system_teply_pol', 'off') %}🔥 Тёплый пол: ВЫКЛЮЧЕН
+          {% else %}🔥 Тёплый пол: состояние неизвестно{% endif %}
+        diod_line: >
+          {% if is_state('switch.system_diod', 'on') %}💡 Диодное освещение: ВКЛЮЧЕНО
+          {% elif is_state('switch.system_diod', 'off') %}💡 Диодное освещение: ВЫКЛЮЧЕНО
+          {% else %}💡 Диодное освещение: состояние неизвестно{% endif %}
+    - action: telegram_bot.send_message
+      data:
+        config_entry_id: 01K85FEY9X86ZAEWBEGMWJEJ7V
+        target:
+          - '374673383'
+        message: |
+          ✅ Home Assistant запущен
+          🕒 Время запуска: {{ now().strftime('%H:%M:%S, %d.%m.%Y') }}
+          🌐 IP-адрес: {{ hass_ip }}
+
+          {{ teply_pol_line }}
+          {{ diod_line }}
+    - action: persistent_notification.create
+      data:
+        title: "✅ HASS запущен"
+        message: |
+          🕒 Время запуска: {{ now().strftime('%H:%M:%S, %d.%m.%Y') }}
+          🌐 IP-адрес: {{ hass_ip }}
+
+          {{ teply_pol_line }}
+          {{ diod_line }}
   mode: single

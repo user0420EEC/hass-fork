@@ -1,0 +1,17 @@
+# ✅ Вариант 2 — напрямую в automations.yaml (корень — список):
+- alias: "Санузел 2 — автоотключение при наступлении светла"
+  description: "При включении датчика освещенности (день) выключает свет в Санузле 2 через 1 секунду"
+  mode: single
+  trigger:
+    - platform: state
+      entity_id: binary_sensor.day_night
+      to: "on"
+  condition:
+    - condition: state
+      entity_id: light.sanuzel_2
+      state: "on"
+  action:
+    - delay: "00:00:01"
+    - service: light.turn_off
+      target:
+        entity_id: light.sanuzel_2
